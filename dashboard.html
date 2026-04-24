@@ -159,7 +159,7 @@
 
         #treeChart {
             width: 100%;
-            height: 600px;
+            height: 900px;
         }
 
         .tree-controls {
@@ -411,7 +411,7 @@
             }
 
             #treeChart {
-                height: 400px;
+                height: 700px;
             }
         }
     </style>
@@ -709,6 +709,8 @@
                 <div class="tree-controls">
                     <button class="tree-btn" onclick="changeTreeLayout('vertical')">⬇️ Vertical</button>
                     <button class="tree-btn" onclick="changeTreeLayout('horizontal')">➡️ Horizontal</button>
+                    <button class="tree-btn" onclick="expandAllNodes()" style="background: #10b981;">📂 Expandir Tudo</button>
+                    <button class="tree-btn" onclick="collapseAllNodes()" style="background: #ef4444;">📁 Recolher Tudo</button>
                 </div>
 
                 <div id="treeChart"></div>
@@ -978,6 +980,34 @@
             console.log('Mudando layout para:', layout);
             currentTreeLayout = layout;
             initTree();
+        }
+
+        function expandAllNodes() {
+            if (!myTreeChart) return;
+            // Expandir todos os nós
+            const option = myTreeChart.getOption();
+            if (option && option.series && option.series[0]) {
+                option.series[0].data[0].expanded = true;
+                setAllExpanded(option.series[0].data[0], true);
+                myTreeChart.setOption(option);
+            }
+        }
+
+        function collapseAllNodes() {
+            if (!myTreeChart) return;
+            // Recolher todos os nós
+            const option = myTreeChart.getOption();
+            if (option && option.series && option.series[0]) {
+                setAllExpanded(option.series[0].data[0], false);
+                myTreeChart.setOption(option);
+            }
+        }
+
+        function setAllExpanded(node, expanded) {
+            node.expanded = expanded;
+            if (node.children) {
+                node.children.forEach(child => setAllExpanded(child, expanded));
+            }
         }
 
         // === CHART.JS CHARTS ===
