@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Chart - Associações Hierárquicas</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        #treeChart {
+            width: 100%;
+            height: 800px;
+        }
+
+        .controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #5568d3;
+        }
+
+        .control-btn.active {
+            background: #10b981;
+        }
+
+        .info-section {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            border-radius: 8px;
+        }
+
+        .info-section h3 {
+            color: #0284c7;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+            border-left: 3px solid #667eea;
+        }
+
+        .info-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .info-item span {
+            color: #666;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid white;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            #treeChart {
+                height: 600px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            #treeChart {
+                height: 500px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌳 Tree Chart - Hierarquia de Associações</h1>
+            <p class="subtitle">
+                Visualização em árvore mostrando a estrutura completa: Status → Fonte → Canal.
+                Use os botões de controle para expandir/colapsar nós ou mudar a orientação.
+            </p>
+        </header>
+
+        <div class="chart-card">
+            <div class="chart-title">📊 Árvore Hierárquica - Total de 40.863 Viagens</div>
+
+            <div class="controls">
+                <button class="control-btn active" onclick="changeLayout('down')">⬇️ Vertical</button>
+                <button class="control-btn" onclick="changeLayout('right')">➡️ Horizontal</button>
+                <button class="control-btn" onclick="expandAll()">📂 Expandir Todos</button>
+                <button class="control-btn" onclick="collapseAll()">📁 Colapsar Todos</button>
+            </div>
+
+            <div id="treeChart"></div>
+
+            <div class="info-section">
+                <h3>💡 Legendas de Cores</h3>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span><strong>Concluído</strong> - Status 1</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span><strong>Fechadas</strong> - Status 4</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span><strong>Cancelado</strong> - Status 3</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <span><strong>Pendente</strong> - Status 2</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span><strong>Motora</strong> - Fonte T&T</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <span><strong>SAP</strong> - Contingência</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>📊 Resumo dos Dados</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Total de Viagens</strong>
+                        <span>40.863 associações</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Concluído</strong>
+                        <span>18.528 viagens (45.33%)</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Fechadas</strong>
+                        <span>14.291 viagens (34.96%)</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Cancelado</strong>
+                        <span>4.469 viagens (10.93%)</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Pendente</strong>
+                        <span>3.152 viagens (7.71%)</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Motora (T&T)</strong>
+                        <span>Maior fonte de associações</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>SAP (Contingência)</strong>
+                        <span>38.88% das viagens</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Tree Chart gerado em 2026-04-24 | Dados: 40.863 viagens (DocumentType 6)</p>
+            <p>Desenvolvido com ECharts 5</p>
+        </footer>
+    </div>
+
+    <script>
+        let treeChart = echarts.init(document.getElementById('treeChart'));
+        let currentLayout = 'down';
+
+        // Dados da árvore
+        const treeData = {
+            name: 'Total: 40.863',
+            value: 40863,
+            children: [
+                {
+                    name: 'Concluído (18.528)',
+                    value: 18528,
+                    children: [
+                        { name: 'Motora (14.075)', value: 14075, children: [
+                            { name: 'Canal 1', value: 6235 },
+                            { name: 'Canal 5', value: 5931 },
+                            { name: 'Canal 2', value: 1938 },
+                            { name: 'Canal 10', value: 353 },
+                            { name: 'Canal 11', value: 1 }
+                        ]},
+                        { name: 'SAP (1.457)', value: 1457, children: [
+                            { name: 'Canal 1', value: 1420 },
+                            { name: 'Canal 2', value: 37 }
+                        ]},
+                        { name: 'Workstation (1.659)', value: 1659, children: [
+                            { name: 'Canal 1', value: 520 },
+                            { name: 'Canal 2', value: 479 },
+                            { name: 'Canal 5', value: 91 },
+                            { name: 'Canal 10', value: 49 },
+                            { name: 'Canal 11', value: 3 }
+                        ]},
+                        { name: 'Tracking (1.153)', value: 1153, children: [
+                            { name: 'Canal 1', value: 577 },
+                            { name: 'Canal 5', value: 824 }
+                        ]},
+                        { name: 'GUIA (184)', value: 184 }
+                    ]
+                },
+                {
+                    name: 'Fechadas (14.291)',
+                    value: 14291,
+                    children: [
+                        { name: 'Motora (1.073)', value: 1073, children: [
+                            { name: 'Canal 1', value: 906 },
+                            { name: 'Canal 2', value: 67 }
+                        ]},
+                        { name: 'SAP (263)', value: 263, children: [
+                            { name: 'Canal 1', value: 253 },
+                            { name: 'Canal 2', value: 10 }
+                        ]},
+                        { name: 'Workstation (115)', value: 115, children: [
+                            { name: 'Canal 1', value: 115 }
+                        ]},
+                        { name: 'Tracking (10.840)', value: 10840, children: [
+                            { name: 'Canal 5', value: 10840 }
+                        ]}
+                    ]
+                },
+                {
+                    name: 'Cancelado (4.469)',
+                    value: 4469,
+                    children: [
+                        { name: 'Motora (3.262)', value: 3262, children: [
+                            { name: 'Canal 1', value: 2096 },
+                            { name: 'Canal 5', value: 4786 },
+                            { name: 'Canal 2', value: 499 },
+                            { name: 'Canal 10', value: 84 }
+                        ]},
+                        { name: 'SAP (291)', value: 291, children: [
+                            { name: 'Canal 1', value: 250 },
+                            { name: 'Canal 2', value: 10 }
+                        ]},
+                        { name: 'Workstation (84)', value: 84 },
+                        { name: 'Tracking (832)', value: 832 }
+                    ]
+                },
+                {
+                    name: 'Pendente (3.152)',
+                    value: 3152,
+                    children: [
+                        { name: 'Motora (1.264)', value: 1264, children: [
+                            { name: 'Canal 1', value: 577 },
+                            { name: 'Canal 5', value: 824 },
+                            { name: 'Canal 2', value: 401 },
+                            { name: 'Canal 10', value: 59 },
+                            { name: 'Canal 11', value: 3 }
+                        ]},
+                        { name: 'SAP (51)', value: 51, children: [
+                            { name: 'Canal 1', value: 49 },
+                            { name: 'Canal 2', value: 2 }
+                        ]},
+                        { name: 'Workstation (99)', value: 99 },
+                        { name: 'Tracking (1.738)', value: 1738 }
+                    ]
+                }
+            ]
+        };
+
+        function getColor(name) {
+            if (name.includes('Concluído')) return '#10b981';
+            if (name.includes('Fechadas')) return '#f59e0b';
+            if (name.includes('Cancelado')) return '#f97316';
+            if (name.includes('Pendente')) return '#3b82f6';
+            if (name.includes('Motora')) return '#10b981';
+            if (name.includes('SAP')) return '#ef4444';
+            if (name.includes('Workstation')) return '#3b82f6';
+            if (name.includes('Tracking')) return '#f59e0b';
+            if (name.includes('GUIA')) return '#f59e0b';
+            return '#94a3b8';
+        }
+
+        function renderChart(layout) {
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    triggerOn: 'mousemove',
+                    formatter: function(params) {
+                        if (params.data.value) {
+                            return `<strong>${params.data.name}</strong><br/>Viagens: <strong>${params.data.value.toLocaleString('pt-BR')}</strong>`;
+                        }
+                        return params.data.name;
+                    }
+                },
+                series: [
+                    {
+                        type: 'tree',
+                        data: [treeData],
+                        top: '5%',
+                        left: '5%',
+                        right: '5%',
+                        bottom: '5%',
+                        symbol: 'emptyCircle',
+                        symbolSize: [35, 35],
+                        orient: layout,
+                        expandAndCollapse: true,
+                        animationDuration: 550,
+                        animationDurationUpdate: 750,
+                        label: {
+                            position: layout === 'down' ? 'bottom' : 'right',
+                            verticalAlign: layout === 'down' ? 'top' : 'middle',
+                            align: layout === 'down' ? 'center' : 'left',
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            color: '#333',
+                            formatter: function(params) {
+                                return params.data.name;
+                            }
+                        },
+                        itemStyle: {
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        lineStyle: {
+                            color: '#d4d4d8',
+                            width: 2
+                        },
+                        leaves: {
+                            label: {
+                                position: layout === 'down' ? 'bottom' : 'right'
+                            }
+                        }
+                    }
+                ]
+            };
+
+            // Aplicar cores
+            function setNodeColor(node) {
+                node.itemStyle = { color: getColor(node.name), borderColor: '#fff', borderWidth: 2 };
+                if (node.children) {
+                    node.children.forEach(child => setNodeColor(child));
+                }
+            }
+            setNodeColor(option.series[0].data[0]);
+
+            treeChart.setOption(option);
+        }
+
+        function changeLayout(layout) {
+            currentLayout = layout;
+            document.querySelectorAll('.control-btn').forEach((btn, idx) => {
+                btn.classList.remove('active');
+                if ((idx === 0 && layout === 'down') || (idx === 1 && layout === 'right')) {
+                    btn.classList.add('active');
+                }
+            });
+            renderChart(layout);
+        }
+
+        function expandAll() {
+            // Expansão automática do echarts
+            treeChart.dispatchAction({ type: 'treeExpandAndCollapse', targetNodeId: 'root', expand: true });
+        }
+
+        function collapseAll() {
+            // Colapso automático
+            treeChart.dispatchAction({ type: 'treeExpandAndCollapse', targetNodeId: 'root', expand: false });
+        }
+
+        // Render inicial
+        renderChart('down');
+
+        // Responsivo
+        window.addEventListener('resize', function() {
+            treeChart.resize();
+        });
+    </script>
+</body>
+</html>
