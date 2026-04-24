@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Análise de Impacto T&T</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -847,8 +847,21 @@
         let currentTreeLayout = 'down';
 
         function initTree() {
+            if (typeof echarts === 'undefined') {
+                console.error('ECharts não está disponível');
+                return;
+            }
+
             const treeContainer = document.getElementById('treeChart');
-            if (myTreeChart) myTreeChart.dispose();
+            if (!treeContainer) {
+                console.error('Container treeChart não encontrado');
+                return;
+            }
+
+            if (myTreeChart) {
+                myTreeChart.dispose();
+            }
+
             myTreeChart = echarts.init(treeContainer);
 
             const treeData = {
@@ -1104,8 +1117,14 @@
         });
 
         // Initialize tree on page load
-        window.addEventListener('load', function() {
-            initTree();
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (typeof echarts !== 'undefined') {
+                    initTree();
+                } else {
+                    console.error('ECharts não carregou');
+                }
+            }, 100);
         });
 
         // Handle window resize
