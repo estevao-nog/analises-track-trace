@@ -441,20 +441,20 @@
 
                 <div class="kpi-card success">
                     <div class="kpi-label">Via T&T (Normal)</div>
-                    <div class="kpi-value">61.12%</div>
-                    <div class="kpi-subtext">24.975 viagens operando bem ✅</div>
+                    <div class="kpi-value">67.93%</div>
+                    <div class="kpi-subtext">27.782 viagens operando bem ✅</div>
                 </div>
 
                 <div class="kpi-card warning">
-                    <div class="kpi-label">Via SAP (Contingência)</div>
-                    <div class="kpi-value">38.88%</div>
-                    <div class="kpi-subtext">15.888 viagens sem T&T ⚠️</div>
+                    <div class="kpi-label">Fora de T&T</div>
+                    <div class="kpi-value">32.07%</div>
+                    <div class="kpi-subtext">13.081 viagens (SAP + Sem Info)</div>
                 </div>
 
-                <div class="kpi-card danger">
-                    <div class="kpi-label">Impacto Bloqueio</div>
-                    <div class="kpi-value">38.88%</div>
-                    <div class="kpi-subtext">15.888 viagens bloqueadas</div>
+                <div class="kpi-card success">
+                    <div class="kpi-label">Impacto de Bloqueio (SAP)</div>
+                    <div class="kpi-value">3.97%</div>
+                    <div class="kpi-subtext">1.624 viagens bloqueadas ✅</div>
                 </div>
             </div>
 
@@ -470,57 +470,18 @@
                     <canvas id="chartImpacto"></canvas>
                 </div>
 
-                <div class="chart-card full-width">
-                    <div class="chart-title">📊 Comparação: Linhas vs Viagens</div>
-                    <table class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th>Métrica</th>
-                                <th>Por Linhas</th>
-                                <th>Por Viagens</th>
-                                <th>Diferença</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="metric-name">Total</td>
-                                <td>60.029</td>
-                                <td>40.863</td>
-                                <td>-32.0%</td>
-                            </tr>
-                            <tr>
-                                <td class="metric-name">Via SAP %</td>
-                                <td>45.86% <span class="badge negative">❌ Alto</span></td>
-                                <td>38.88% <span class="badge neutral">⚠️ Moderado</span></td>
-                                <td>-6.98% <span class="badge positive">✅ Melhor</span></td>
-                            </tr>
-                            <tr>
-                                <td class="metric-name">Impacto Bloqueio</td>
-                                <td>49.40%</td>
-                                <td>38.88%</td>
-                                <td>-10.52% <span class="badge positive">✅ Melhor</span></td>
-                            </tr>
-                            <tr>
-                                <td class="metric-name">Risco</td>
-                                <td><span class="risk-indicator"><span class="dot red"></span>Alto</span></td>
-                                <td><span class="risk-indicator moderate"><span class="dot yellow"></span>Moderado</span></td>
-                                <td>Reduzido</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
 
             <!-- Análise de Impacto -->
             <div class="impact-section">
-                <div class="impact-title">⚡ Análise de Impacto por Cenário</div>
+                <div class="impact-title">⚡ Análise de Impacto: Bloqueio das Associações Feitas Fora do T&T</div>
 
                 <div class="impact-item">
                     <div style="font-weight: 600; color: #ef4444; width: 120px;">Bloqueio Total</div>
                     <div class="impact-bar">
-                        <div class="impact-label">38.88% de viagens bloqueadas</div>
+                        <div class="impact-label">3.97% de viagens bloqueadas (SAP + Sem Info)</div>
                         <div class="impact-graph">
-                            <div class="impact-fill" style="width: 38.88%;">38.88%</div>
+                            <div class="impact-fill" style="width: 3.97%;">3.97%</div>
                         </div>
                     </div>
                 </div>
@@ -538,19 +499,19 @@
                 <div class="impact-item warning">
                     <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 2 (15-28d)</div>
                     <div class="impact-bar">
-                        <div class="impact-label">Endurecimento gradual - 15-20% impacto</div>
+                        <div class="impact-label">Endurecimento gradual - 2% impacto</div>
                         <div class="impact-graph">
-                            <div class="impact-fill" style="width: 17.5%; background: #f59e0b;">17.5%</div>
+                            <div class="impact-fill" style="width: 2%; background: #f59e0b;">2%</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="impact-item warning">
-                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 3 (29+d)</div>
+                <div class="impact-item success">
+                    <div style="font-weight: 600; color: #10b981; width: 120px;">Fase 3 (29+d)</div>
                     <div class="impact-bar">
-                        <div class="impact-label">Bloqueio total (após >80% adesão) - 38.88% impacto</div>
+                        <div class="impact-label">Bloqueio total (após >90% adesão) - 3.97% impacto</div>
                         <div class="impact-graph">
-                            <div class="impact-fill" style="width: 38.88%; background: #f59e0b;">38.88%</div>
+                            <div class="impact-fill" style="width: 3.97%; background: #10b981;">3.97%</div>
                         </div>
                     </div>
                 </div>
