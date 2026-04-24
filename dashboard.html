@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Análise de Impacto T&T</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -164,36 +164,8 @@
         #treeChart {
             width: 100%;
             height: 700px;
-            min-height: 600px;
         }
 
-        .tree-container {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .tree-controls {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .tree-btn {
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .tree-btn:hover {
-            background: #5568d3;
-        }
 
         .comparison-table {
             width: 100%;
@@ -421,7 +393,7 @@
             }
 
             #treeChart {
-                height: 700px;
+                height: 600px;
             }
         }
     </style>
@@ -757,22 +729,16 @@
         <!-- TAB 2: ÁRVORE HIERÁRQUICA -->
         <div id="tree" class="tab-content">
             <div class="chart-card full-width">
-                <div class="chart-title">🌳 Árvore Hierárquica - Status × Fonte</div>
-
-                <div class="tree-controls">
-                    <button class="tree-btn" onclick="changeTreeLayout('vertical')">⬇️ Vertical</button>
-                    <button class="tree-btn" onclick="changeTreeLayout('horizontal')">➡️ Horizontal</button>
-                    <button class="tree-btn" onclick="expandAllNodes()" style="background: #10b981;">📂 Expandir Tudo</button>
-                    <button class="tree-btn" onclick="collapseAllNodes()" style="background: #ef4444;">📁 Recolher Tudo</button>
-                </div>
+                <div class="chart-title">🌳 Árvore Hierárquica - Status × Fonte × Canal</div>
+                <p style="color: #666; font-size: 12px; margin-bottom: 15px;">Visualização interativa da hierarquia completa. Clique nos segmentos para expandir/colapsar.</p>
 
                 <div id="treeChart"></div>
 
                 <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 8px;">
                     <h4 style="color: #0284c7; margin-bottom: 10px;">💡 Como usar:</h4>
-                    <p style="color: #333; font-size: 13px; margin-bottom: 5px;">✓ Clique em um nó para expandir/colapsar</p>
-                    <p style="color: #333; font-size: 13px; margin-bottom: 5px;">✓ Hover para ver valores exatos</p>
-                    <p style="color: #333; font-size: 13px;">✓ Use os botões para mudar orientação</p>
+                    <p style="color: #333; font-size: 13px; margin-bottom: 5px;">✓ Clique em um segmento para expandir a hierarquia</p>
+                    <p style="color: #333; font-size: 13px; margin-bottom: 5px;">✓ Clique no centro para voltar um nível</p>
+                    <p style="color: #333; font-size: 13px;">✓ Hover para ver valores exatos</p>
                 </div>
             </div>
         </div>
@@ -884,186 +850,130 @@
 
             // Resize charts when tab changes
             setTimeout(() => {
-                if (tabName === 'tree' && myTreeChart) {
-                    myTreeChart.resize();
+                if (tabName === 'tree') {
+                    Plotly.Plots.resize('treeChart');
                 }
                 if (tabName === 'overview') {
-                    myChart1.resize();
-                    myChart2.resize();
-                    myChart5.resize();
-                    myChart6.resize();
-                    myChart7.resize();
+                    if (myChart1) myChart1.resize();
+                    if (myChart2) myChart2.resize();
+                    if (myChart5) myChart5.resize();
+                    if (myChart6) myChart6.resize();
+                    if (myChart7) myChart7.resize();
                 }
-            }, 100);
+            }, 200);
         }
 
-        // === TREE CHART ===
-        let myTreeChart = null;
-        let currentTreeLayout = 'vertical';
-        let isExpandedState = false;
+        // === TREE CHART - PLOTLY SUNBURST ===
+        function initTreeChart() {
+            const values = [
+                40863,
+                18528, 14075, 1457, 1659, 1153, 184,
+                14291, 1073, 263, 115, 10840,
+                4469, 3262, 291, 84, 832,
+                3152, 1264, 51, 99, 1738
+            ];
 
-        // Dados base da árvore
-        const baseTreeData = {
-            name: 'Total: 40.863 Viagens',
-            value: 40863,
-            children: [
-                {
-                    name: 'Concluído (18.528)',
-                    value: 18528,
-                    children: [
-                        { name: 'Motora (14.075)', value: 14075 },
-                        { name: 'SAP (1.457)', value: 1457 },
-                        { name: 'Workstation (1.659)', value: 1659 },
-                        { name: 'Tracking (1.153)', value: 1153 },
-                        { name: 'GUIA (184)', value: 184 }
-                    ]
-                },
-                {
-                    name: 'Fechadas (14.291)',
-                    value: 14291,
-                    children: [
-                        { name: 'Motora (1.073)', value: 1073 },
-                        { name: 'SAP (263)', value: 263 },
-                        { name: 'Workstation (115)', value: 115 },
-                        { name: 'Tracking (10.840)', value: 10840 }
-                    ]
-                },
-                {
-                    name: 'Cancelado (4.469)',
-                    value: 4469,
-                    children: [
-                        { name: 'Motora (3.262)', value: 3262 },
-                        { name: 'SAP (291)', value: 291 },
-                        { name: 'Workstation (84)', value: 84 },
-                        { name: 'Tracking (832)', value: 832 }
-                    ]
-                },
-                {
-                    name: 'Pendente (3.152)',
-                    value: 3152,
-                    children: [
-                        { name: 'Motora (1.264)', value: 1264 },
-                        { name: 'SAP (51)', value: 51 },
-                        { name: 'Workstation (99)', value: 99 },
-                        { name: 'Tracking (1.738)', value: 1738 }
-                    ]
-                }
-            ]
-        };
+            // Calcular porcentagens com 1 casa decimal
+            const parents_list = [
+                "",
+                "Total: 40.863",
+                "Concluído (18.528)",
+                "Concluído (18.528)",
+                "Concluído (18.528)",
+                "Concluído (18.528)",
+                "Concluído (18.528)",
+                "Total: 40.863",
+                "Fechadas (14.291)",
+                "Fechadas (14.291)",
+                "Fechadas (14.291)",
+                "Fechadas (14.291)",
+                "Total: 40.863",
+                "Cancelado (4.469)",
+                "Cancelado (4.469)",
+                "Cancelado (4.469)",
+                "Cancelado (4.469)",
+                "Total: 40.863",
+                "Pendente (3.152)",
+                "Pendente (3.152)",
+                "Pendente (3.152)",
+                "Pendente (3.152)"
+            ];
 
-        function getNodeColor(name) {
-            if (name.includes('Concluído')) return '#10b981';
-            if (name.includes('Fechadas')) return '#f59e0b';
-            if (name.includes('Cancelado')) return '#f97316';
-            if (name.includes('Pendente')) return '#3b82f6';
-            if (name.includes('Motora')) return '#10b981';
-            if (name.includes('SAP')) return '#ef4444';
-            if (name.includes('Workstation')) return '#3b82f6';
-            if (name.includes('Tracking')) return '#f59e0b';
-            return '#94a3b8';
-        }
-
-        function colorizeNode(node) {
-            node.itemStyle = { color: getNodeColor(node.name) };
-            if (node.children) {
-                node.children.forEach(colorizeNode);
-            }
-        }
-
-        function setNodeExpanded(node, expanded) {
-            node.expanded = expanded;
-            if (node.children) {
-                node.children.forEach(child => setNodeExpanded(child, expanded));
-            }
-        }
-
-        function renderTreeChart(treeData, initialDepth = 1) {
-            if (typeof echarts === 'undefined') {
-                console.error('ECharts não está disponível');
-                return;
-            }
-
-            const treeContainer = document.getElementById('treeChart');
-            if (!treeContainer) {
-                console.error('Container treeChart não encontrado');
-                return;
-            }
-
-            if (myTreeChart) {
-                myTreeChart.dispose();
-            }
-
-            myTreeChart = echarts.init(treeContainer);
-
-            // Clonar e colorir os dados
-            const data = JSON.parse(JSON.stringify(treeData));
-            colorizeNode(data);
-
-            const option = {
-                tooltip: {
-                    trigger: 'item',
-                    triggerOn: 'mousemove',
-                    formatter: function(params) {
-                        if (params.data && params.data.value) {
-                            return `<strong>${params.data.name}</strong><br/>Viagens: <strong>${params.data.value.toLocaleString('pt-BR')}</strong>`;
-                        }
-                        return params.name;
-                    }
-                },
-                series: [{
-                    type: 'tree',
-                    data: [data],
-                    top: '5%',
-                    left: '5%',
-                    right: '5%',
-                    bottom: '5%',
-                    symbol: 'circle',
-                    symbolSize: [35, 35],
-                    orient: currentTreeLayout,
-                    expandAndCollapse: true,
-                    initialTreeDepth: initialDepth,
-                    animationDuration: 550,
-                    animationDurationUpdate: 750,
-                    label: {
-                        position: currentTreeLayout === 'vertical' ? 'bottom' : 'right',
-                        verticalAlign: currentTreeLayout === 'vertical' ? 'top' : 'middle',
-                        align: currentTreeLayout === 'vertical' ? 'center' : 'left',
-                        fontSize: 11,
-                        fontWeight: 'bold',
-                        color: '#333'
-                    },
-                    itemStyle: {
-                        borderColor: '#fff',
-                        borderWidth: 2,
-                        color: '#667eea'
-                    },
-                    lineStyle: { color: '#cbd5e1', width: 2 }
-                }]
+            const parent_totals = {
+                "": 40863,
+                "Total: 40.863": 40863,
+                "Concluído (18.528)": 18528,
+                "Fechadas (14.291)": 14291,
+                "Cancelado (4.469)": 4469,
+                "Pendente (3.152)": 3152
             };
 
-            myTreeChart.setOption(option);
-        }
+            const customdata = values.map((val, idx) => {
+                const parent = parents_list[idx];
+                const parentTotal = parent_totals[parent] || val;
+                const percentage = ((val / parentTotal) * 100).toFixed(1);
+                return percentage;
+            });
 
-        function initTree() {
-            renderTreeChart(baseTreeData, 2); // Profundidade padrão: mostra 2 níveis
-        }
+            const data = [{
+                type: "sunburst",
+                labels: [
+                    "Total: 40.863",
+                    "Concluído (18.528)",
+                    "Motora - Concluído (14.075)",
+                    "SAP - Concluído (1.457)",
+                    "Workstation - Concluído (1.659)",
+                    "Tracking - Concluído (1.153)",
+                    "GUIA - Concluído (184)",
+                    "Fechadas (14.291)",
+                    "Motora - Fechadas (1.073)",
+                    "SAP - Fechadas (263)",
+                    "Workstation - Fechadas (115)",
+                    "Tracking - Fechadas (10.840)",
+                    "Cancelado (4.469)",
+                    "Motora - Cancelado (3.262)",
+                    "SAP - Cancelado (291)",
+                    "Workstation - Cancelado (84)",
+                    "Tracking - Cancelado (832)",
+                    "Pendente (3.152)",
+                    "Motora - Pendente (1.264)",
+                    "SAP - Pendente (51)",
+                    "Workstation - Pendente (99)",
+                    "Tracking - Pendente (1.738)"
+                ],
+                parents: parents_list,
+                values: values,
+                customdata: customdata,
+                marker: {
+                    colors: [
+                        "#667eea",
+                        "#10b981", "#10b981", "#ef4444", "#3b82f6", "#f59e0b", "#94a3b8",
+                        "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#f59e0b",
+                        "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#f59e0b",
+                        "#3b82f6", "#10b981", "#ef4444", "#3b82f6", "#f59e0b"
+                    ],
+                    line: {
+                        color: "white",
+                        width: 2
+                    }
+                },
+                textinfo: "label+value+percent parent",
+                hovertemplate: "<b>%{label}</b><br>Viagens: %{value:,.0f}<br>%{customdata}%<extra></extra>",
+                textposition: "inside"
+            }];
 
-        function changeTreeLayout(layout) {
-            console.log('Mudando layout para:', layout);
-            currentTreeLayout = layout;
-            initTree();
-        }
+            const layout = {
+                font: {
+                    family: "'Segoe UI', sans-serif",
+                    size: 12,
+                    color: "#333"
+                },
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                paper_bgcolor: "white",
+                plot_bgcolor: "rgba(0,0,0,0)"
+            };
 
-        function expandAllNodes() {
-            console.log('Expandindo todos os nós...');
-            renderTreeChart(baseTreeData, 100); // Profundidade muito alta = mostrar tudo
-            isExpandedState = true;
-        }
-
-        function collapseAllNodes() {
-            console.log('Recolhendo todos os nós...');
-            renderTreeChart(baseTreeData, 1); // Apenas raiz e primeiro nível
-            isExpandedState = false;
+            Plotly.newPlot('treeChart', data, layout, {responsive: true});
         }
 
         // === CHART.JS CHARTS ===
@@ -1213,17 +1123,13 @@
         // Initialize tree on page load
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
-                if (typeof echarts !== 'undefined') {
-                    initTree();
-                } else {
-                    console.error('ECharts não carregou');
-                }
+                initTreeChart();
             }, 100);
         });
 
         // Handle window resize
         window.addEventListener('resize', function() {
-            if (myTreeChart) myTreeChart.resize();
+            Plotly.Plots.resize('treeChart');
         });
     </script>
 </body>
