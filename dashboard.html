@@ -847,8 +847,84 @@
         // === TREE CHART ===
         let myTreeChart = null;
         let currentTreeLayout = 'vertical';
+        let isExpandedState = false;
 
-        function initTree() {
+        // Dados base da árvore
+        const baseTreeData = {
+            name: 'Total: 40.863 Viagens',
+            value: 40863,
+            children: [
+                {
+                    name: 'Concluído (18.528)',
+                    value: 18528,
+                    children: [
+                        { name: 'Motora (14.075)', value: 14075 },
+                        { name: 'SAP (1.457)', value: 1457 },
+                        { name: 'Workstation (1.659)', value: 1659 },
+                        { name: 'Tracking (1.153)', value: 1153 },
+                        { name: 'GUIA (184)', value: 184 }
+                    ]
+                },
+                {
+                    name: 'Fechadas (14.291)',
+                    value: 14291,
+                    children: [
+                        { name: 'Motora (1.073)', value: 1073 },
+                        { name: 'SAP (263)', value: 263 },
+                        { name: 'Workstation (115)', value: 115 },
+                        { name: 'Tracking (10.840)', value: 10840 }
+                    ]
+                },
+                {
+                    name: 'Cancelado (4.469)',
+                    value: 4469,
+                    children: [
+                        { name: 'Motora (3.262)', value: 3262 },
+                        { name: 'SAP (291)', value: 291 },
+                        { name: 'Workstation (84)', value: 84 },
+                        { name: 'Tracking (832)', value: 832 }
+                    ]
+                },
+                {
+                    name: 'Pendente (3.152)',
+                    value: 3152,
+                    children: [
+                        { name: 'Motora (1.264)', value: 1264 },
+                        { name: 'SAP (51)', value: 51 },
+                        { name: 'Workstation (99)', value: 99 },
+                        { name: 'Tracking (1.738)', value: 1738 }
+                    ]
+                }
+            ]
+        };
+
+        function getNodeColor(name) {
+            if (name.includes('Concluído')) return '#10b981';
+            if (name.includes('Fechadas')) return '#f59e0b';
+            if (name.includes('Cancelado')) return '#f97316';
+            if (name.includes('Pendente')) return '#3b82f6';
+            if (name.includes('Motora')) return '#10b981';
+            if (name.includes('SAP')) return '#ef4444';
+            if (name.includes('Workstation')) return '#3b82f6';
+            if (name.includes('Tracking')) return '#f59e0b';
+            return '#94a3b8';
+        }
+
+        function colorizeNode(node) {
+            node.itemStyle = { color: getNodeColor(node.name) };
+            if (node.children) {
+                node.children.forEach(colorizeNode);
+            }
+        }
+
+        function setNodeExpanded(node, expanded) {
+            node.expanded = expanded;
+            if (node.children) {
+                node.children.forEach(child => setNodeExpanded(child, expanded));
+            }
+        }
+
+        function renderTreeChart(treeData) {
             if (typeof echarts === 'undefined') {
                 console.error('ECharts não está disponível');
                 return;
@@ -866,71 +942,9 @@
 
             myTreeChart = echarts.init(treeContainer);
 
-            const treeData = {
-                name: 'Total: 40.863 Viagens',
-                value: 40863,
-                children: [
-                    {
-                        name: 'Concluído (18.528)',
-                        value: 18528,
-                        children: [
-                            { name: 'Motora (14.075)', value: 14075 },
-                            { name: 'SAP (1.457)', value: 1457 },
-                            { name: 'Workstation (1.659)', value: 1659 },
-                            { name: 'Tracking (1.153)', value: 1153 },
-                            { name: 'GUIA (184)', value: 184 }
-                        ]
-                    },
-                    {
-                        name: 'Fechadas (14.291)',
-                        value: 14291,
-                        children: [
-                            { name: 'Motora (1.073)', value: 1073 },
-                            { name: 'SAP (263)', value: 263 },
-                            { name: 'Workstation (115)', value: 115 },
-                            { name: 'Tracking (10.840)', value: 10840 }
-                        ]
-                    },
-                    {
-                        name: 'Cancelado (4.469)',
-                        value: 4469,
-                        children: [
-                            { name: 'Motora (3.262)', value: 3262 },
-                            { name: 'SAP (291)', value: 291 },
-                            { name: 'Workstation (84)', value: 84 },
-                            { name: 'Tracking (832)', value: 832 }
-                        ]
-                    },
-                    {
-                        name: 'Pendente (3.152)',
-                        value: 3152,
-                        children: [
-                            { name: 'Motora (1.264)', value: 1264 },
-                            { name: 'SAP (51)', value: 51 },
-                            { name: 'Workstation (99)', value: 99 },
-                            { name: 'Tracking (1.738)', value: 1738 }
-                        ]
-                    }
-                ]
-            };
-
-            function getNodeColor(name) {
-                if (name.includes('Concluído')) return '#10b981';
-                if (name.includes('Fechadas')) return '#f59e0b';
-                if (name.includes('Cancelado')) return '#f97316';
-                if (name.includes('Pendente')) return '#3b82f6';
-                if (name.includes('Motora')) return '#10b981';
-                if (name.includes('SAP')) return '#ef4444';
-                if (name.includes('Workstation')) return '#3b82f6';
-                if (name.includes('Tracking')) return '#f59e0b';
-                return '#94a3b8';
-            }
-
-            function colorize(node) {
-                node.itemStyle = { color: getNodeColor(node.name) };
-                if (node.children) node.children.forEach(colorize);
-            }
-            colorize(treeData);
+            // Clonar e colorir os dados
+            const data = JSON.parse(JSON.stringify(treeData));
+            colorizeNode(data);
 
             const option = {
                 tooltip: {
@@ -945,7 +959,7 @@
                 },
                 series: [{
                     type: 'tree',
-                    data: [treeData],
+                    data: [data],
                     top: '5%',
                     left: '5%',
                     right: '5%',
@@ -976,6 +990,10 @@
             myTreeChart.setOption(option);
         }
 
+        function initTree() {
+            renderTreeChart(baseTreeData);
+        }
+
         function changeTreeLayout(layout) {
             console.log('Mudando layout para:', layout);
             currentTreeLayout = layout;
@@ -984,37 +1002,18 @@
 
         function expandAllNodes() {
             console.log('Expandindo todos os nós...');
-            if (!myTreeChart) return;
-
-            // Clonar os dados e expandir todos
-            const option = myTreeChart.getOption();
-            if (option && option.series && option.series[0] && option.series[0].data) {
-                const data = JSON.parse(JSON.stringify(option.series[0].data[0]));
-                setAllExpanded(data, true);
-                option.series[0].data = [data];
-                myTreeChart.setOption(option, true);
-            }
+            const data = JSON.parse(JSON.stringify(baseTreeData));
+            setNodeExpanded(data, true);
+            renderTreeChart(data);
+            isExpandedState = true;
         }
 
         function collapseAllNodes() {
             console.log('Recolhendo todos os nós...');
-            if (!myTreeChart) return;
-
-            // Clonar os dados e recolher todos
-            const option = myTreeChart.getOption();
-            if (option && option.series && option.series[0] && option.series[0].data) {
-                const data = JSON.parse(JSON.stringify(option.series[0].data[0]));
-                setAllExpanded(data, false);
-                option.series[0].data = [data];
-                myTreeChart.setOption(option, true);
-            }
-        }
-
-        function setAllExpanded(node, expanded) {
-            node.expanded = expanded;
-            if (node.children && node.children.length > 0) {
-                node.children.forEach(child => setAllExpanded(child, expanded));
-            }
+            const data = JSON.parse(JSON.stringify(baseTreeData));
+            setNodeExpanded(data, false);
+            renderTreeChart(data);
+            isExpandedState = false;
         }
 
         // === CHART.JS CHARTS ===
