@@ -924,7 +924,7 @@
             }
         }
 
-        function renderTreeChart(treeData) {
+        function renderTreeChart(treeData, initialDepth = 1) {
             if (typeof echarts === 'undefined') {
                 console.error('ECharts não está disponível');
                 return;
@@ -968,6 +968,7 @@
                     symbolSize: [35, 35],
                     orient: currentTreeLayout,
                     expandAndCollapse: true,
+                    initialTreeDepth: initialDepth,
                     animationDuration: 550,
                     animationDurationUpdate: 750,
                     label: {
@@ -991,7 +992,7 @@
         }
 
         function initTree() {
-            renderTreeChart(baseTreeData);
+            renderTreeChart(baseTreeData, 2); // Profundidade padrão: mostra 2 níveis
         }
 
         function changeTreeLayout(layout) {
@@ -1002,17 +1003,13 @@
 
         function expandAllNodes() {
             console.log('Expandindo todos os nós...');
-            const data = JSON.parse(JSON.stringify(baseTreeData));
-            setNodeExpanded(data, true);
-            renderTreeChart(data);
+            renderTreeChart(baseTreeData, 100); // Profundidade muito alta = mostrar tudo
             isExpandedState = true;
         }
 
         function collapseAllNodes() {
             console.log('Recolhendo todos os nós...');
-            const data = JSON.parse(JSON.stringify(baseTreeData));
-            setNodeExpanded(data, false);
-            renderTreeChart(data);
+            renderTreeChart(baseTreeData, 1); // Apenas raiz e primeiro nível
             isExpandedState = false;
         }
 
