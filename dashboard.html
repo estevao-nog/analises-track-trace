@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Análise de Impacto T&T</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -41,6 +42,37 @@
         .subtitle {
             color: #666;
             font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .kpi-grid {
@@ -115,6 +147,42 @@
 
         .full-width {
             grid-column: 1 / -1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #treeChart {
+            width: 100%;
+            height: 600px;
+        }
+
+        .tree-controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tree-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .tree-btn:hover {
+            background: #5568d3;
         }
 
         .comparison-table {
@@ -333,6 +401,18 @@
             .kpi-value {
                 font-size: 28px;
             }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            #treeChart {
+                height: 400px;
+            }
         }
     </style>
 </head>
@@ -341,281 +421,385 @@
         <header>
             <h1>📊 Dashboard - Análise de Impacto T&T</h1>
             <p class="subtitle">DocumentType = 6 | Contagem por Viagens (DocumentNumber Distinto) | Base: 40.863 viagens</p>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="tree-chart.html" style="display: inline-block; padding: 10px 20px; background: #667eea; color: white; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; transition: background 0.3s;">
-                    🌳 Tree Chart Hierárquico
-                </a>
-                <a href="tree-interactive.html" style="display: inline-block; padding: 10px 20px; background: #764ba2; color: white; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; transition: background 0.3s;">
-                    🔄 Sunburst Interativo
-                </a>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('overview')">📊 Visão Geral</button>
+                <button class="tab-btn" onclick="switchTab('tree')">🌳 Árvore Hierárquica</button>
+                <button class="tab-btn" onclick="switchTab('status')">📋 Status Detalhado</button>
             </div>
         </header>
 
-        <!-- KPIs Principais -->
-        <div class="kpi-grid">
-            <div class="kpi-card success">
-                <div class="kpi-label">Total de Viagens</div>
-                <div class="kpi-value">40.863</div>
-                <div class="kpi-subtext">Período: 03 a 23 de Abril/2026</div>
+        <!-- TAB 1: VISÃO GERAL -->
+        <div id="overview" class="tab-content active">
+            <!-- KPIs Principais -->
+            <div class="kpi-grid">
+                <div class="kpi-card success">
+                    <div class="kpi-label">Total de Viagens</div>
+                    <div class="kpi-value">40.863</div>
+                    <div class="kpi-subtext">Período: 03 a 23 de Abril/2026</div>
+                </div>
+
+                <div class="kpi-card success">
+                    <div class="kpi-label">Via T&T (Normal)</div>
+                    <div class="kpi-value">61.12%</div>
+                    <div class="kpi-subtext">24.975 viagens operando bem ✅</div>
+                </div>
+
+                <div class="kpi-card warning">
+                    <div class="kpi-label">Via SAP (Contingência)</div>
+                    <div class="kpi-value">38.88%</div>
+                    <div class="kpi-subtext">15.888 viagens sem T&T ⚠️</div>
+                </div>
+
+                <div class="kpi-card danger">
+                    <div class="kpi-label">Impacto Bloqueio</div>
+                    <div class="kpi-value">38.88%</div>
+                    <div class="kpi-subtext">15.888 viagens bloqueadas</div>
+                </div>
             </div>
 
-            <div class="kpi-card success">
-                <div class="kpi-label">Via T&T (Normal)</div>
-                <div class="kpi-value">61.12%</div>
-                <div class="kpi-subtext">24.975 viagens operando bem ✅</div>
+            <!-- Gráficos -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">📍 Distribuição por Checkin Source</div>
+                    <canvas id="chartDistribuicao"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">🎯 Impacto de Bloqueio</div>
+                    <canvas id="chartImpacto"></canvas>
+                </div>
+
+                <div class="chart-card full-width">
+                    <div class="chart-title">📊 Comparação: Linhas vs Viagens</div>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Métrica</th>
+                                <th>Por Linhas</th>
+                                <th>Por Viagens</th>
+                                <th>Diferença</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="metric-name">Total</td>
+                                <td>60.029</td>
+                                <td>40.863</td>
+                                <td>-32.0%</td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name">Via SAP %</td>
+                                <td>45.86% <span class="badge negative">❌ Alto</span></td>
+                                <td>38.88% <span class="badge neutral">⚠️ Moderado</span></td>
+                                <td>-6.98% <span class="badge positive">✅ Melhor</span></td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name">Impacto Bloqueio</td>
+                                <td>49.40%</td>
+                                <td>38.88%</td>
+                                <td>-10.52% <span class="badge positive">✅ Melhor</span></td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name">Risco</td>
+                                <td><span class="risk-indicator"><span class="dot red"></span>Alto</span></td>
+                                <td><span class="risk-indicator moderate"><span class="dot yellow"></span>Moderado</span></td>
+                                <td>Reduzido</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <div class="kpi-card warning">
-                <div class="kpi-label">Via SAP (Contingência)</div>
-                <div class="kpi-value">38.88%</div>
-                <div class="kpi-subtext">15.888 viagens sem T&T ⚠️</div>
-            </div>
+            <!-- Análise de Impacto -->
+            <div class="impact-section">
+                <div class="impact-title">⚡ Análise de Impacto por Cenário</div>
 
-            <div class="kpi-card danger">
-                <div class="kpi-label">Impacto Bloqueio</div>
-                <div class="kpi-value">38.88%</div>
-                <div class="kpi-subtext">15.888 viagens bloqueadas</div>
-            </div>
-        </div>
+                <div class="impact-item">
+                    <div style="font-weight: 600; color: #ef4444; width: 120px;">Bloqueio Total</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">38.88% de viagens bloqueadas</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 38.88%;">38.88%</div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Gráficos -->
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-title">📍 Distribuição por Checkin Source</div>
-                <canvas id="chartDistribuicao"></canvas>
-            </div>
+                <div class="impact-item success">
+                    <div style="font-weight: 600; color: #10b981; width: 120px;">Fase 1 (0-14d)</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">Comunicação apenas - 0% impacto</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 0%; background: #10b981;">0%</div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="chart-card">
-                <div class="chart-title">🎯 Impacto de Bloqueio</div>
-                <canvas id="chartImpacto"></canvas>
-            </div>
+                <div class="impact-item warning">
+                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 2 (15-28d)</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">Endurecimento gradual - 15-20% impacto</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 17.5%; background: #f59e0b;">17.5%</div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="chart-card full-width">
-                <div class="chart-title">📊 Comparação: Linhas vs Viagens</div>
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>Métrica</th>
-                            <th>Por Linhas</th>
-                            <th>Por Viagens</th>
-                            <th>Diferença</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="metric-name">Total</td>
-                            <td>60.029</td>
-                            <td>40.863</td>
-                            <td>-32.0%</td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name">Via SAP %</td>
-                            <td>45.86% <span class="badge negative">❌ Alto</span></td>
-                            <td>38.88% <span class="badge neutral">⚠️ Moderado</span></td>
-                            <td>-6.98% <span class="badge positive">✅ Melhor</span></td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name">Impacto Bloqueio</td>
-                            <td>49.40%</td>
-                            <td>38.88%</td>
-                            <td>-10.52% <span class="badge positive">✅ Melhor</span></td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name">Risco</td>
-                            <td><span class="risk-indicator"><span class="dot red"></span>Alto</span></td>
-                            <td><span class="risk-indicator moderate"><span class="dot yellow"></span>Moderado</span></td>
-                            <td>Reduzido</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Análise de Impacto -->
-        <div class="impact-section">
-            <div class="impact-title">⚡ Análise de Impacto por Cenário</div>
-
-            <div class="impact-item">
-                <div style="font-weight: 600; color: #ef4444; width: 120px;">Bloqueio Total</div>
-                <div class="impact-bar">
-                    <div class="impact-label">38.88% de viagens bloqueadas</div>
-                    <div class="impact-graph">
-                        <div class="impact-fill" style="width: 38.88%;">38.88%</div>
+                <div class="impact-item warning">
+                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 3 (29+d)</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">Bloqueio total (após >80% adesão) - 38.88% impacto</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 38.88%; background: #f59e0b;">38.88%</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="impact-item success">
-                <div style="font-weight: 600; color: #10b981; width: 120px;">Fase 1 (0-14d)</div>
-                <div class="impact-bar">
-                    <div class="impact-label">Comunicação apenas - 0% impacto</div>
-                    <div class="impact-graph">
-                        <div class="impact-fill" style="width: 0%; background: #10b981;">0%</div>
-                    </div>
+            <!-- Status de Todas as Viagens -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">📊 Distribuição por Status (Todas as Viagens)</div>
+                    <canvas id="chartStatusGeral"></canvas>
+                </div>
+
+                <div class="chart-card full-width">
+                    <div class="chart-title">📋 Detalhes por Status</div>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Viagens</th>
+                                <th>%</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #10b981; border-radius: 50%; margin-right: 8px;"></span>Status 1</td>
+                                <td>18.528</td>
+                                <td>45.33%</td>
+                                <td>Concluído com sucesso ✅</td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></span>Status 4</td>
+                                <td>14.291</td>
+                                <td>34.96%</td>
+                                <td>Fechadas</td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></span>Status 3</td>
+                                <td>4.469</td>
+                                <td>10.93%</td>
+                                <td>Cancelado ⚠️</td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; margin-right: 8px;"></span>Status 2</td>
+                                <td>3.152</td>
+                                <td>7.71%</td>
+                                <td>Pendente ⏳</td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #94a3b8; border-radius: 50%; margin-right: 8px;"></span>Sem Status</td>
+                                <td>423</td>
+                                <td>1.04%</td>
+                                <td>Sem classificação</td>
+                            </tr>
+                            <tr style="background: #f0f0f0; font-weight: 600;">
+                                <td class="metric-name">TOTAL</td>
+                                <td>40.863</td>
+                                <td>100%</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="impact-item warning">
-                <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 2 (15-28d)</div>
-                <div class="impact-bar">
-                    <div class="impact-label">Endurecimento gradual - 15-20% impacto</div>
-                    <div class="impact-graph">
-                        <div class="impact-fill" style="width: 17.5%; background: #f59e0b;">17.5%</div>
-                    </div>
+            <!-- Qualidade das Viagens Bloqueadas -->
+            <div class="charts-grid">
+                <div class="chart-card full-width">
+                    <div class="chart-title">📈 Status das Viagens Bloqueadas (15.888 viagens via SAP)</div>
+                    <canvas id="chartStatus"></canvas>
                 </div>
             </div>
 
-            <div class="impact-item warning">
-                <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 3 (29+d)</div>
-                <div class="impact-bar">
-                    <div class="impact-label">Bloqueio total (após >80% adesão) - 38.88% impacto</div>
-                    <div class="impact-graph">
-                        <div class="impact-fill" style="width: 38.88%; background: #f59e0b;">38.88%</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <!-- Recomendações -->
+            <div class="recommendations">
+                <h3>💡 Recomendações Estratégicas</h3>
 
-        <!-- Status de Todas as Viagens -->
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-title">📊 Distribuição por Status (Todas as Viagens)</div>
-                <canvas id="chartStatusGeral"></canvas>
-            </div>
-
-            <div class="chart-card full-width">
-                <div class="chart-title">📋 Detalhes por Status</div>
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Viagens</th>
-                            <th>%</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #10b981; border-radius: 50%; margin-right: 8px;"></span>Status 1</td>
-                            <td>18.528</td>
-                            <td>45.33%</td>
-                            <td>Concluído com sucesso ✅</td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #ef4444; border-radius: 50%; margin-right: 8px;"></span>Status 4</td>
-                            <td>14.291</td>
-                            <td>34.96%</td>
-                            <td>Fim da Associação</td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></span>Status 3</td>
-                            <td>4.469</td>
-                            <td>10.93%</td>
-                            <td>Cancelado ⚠️</td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; margin-right: 8px;"></span>Status 2</td>
-                            <td>3.152</td>
-                            <td>7.71%</td>
-                            <td>Pendente ⏳</td>
-                        </tr>
-                        <tr>
-                            <td class="metric-name"><span style="display: inline-block; width: 12px; height: 12px; background: #94a3b8; border-radius: 50%; margin-right: 8px;"></span>Sem Status</td>
-                            <td>423</td>
-                            <td>1.04%</td>
-                            <td>Sem classificação</td>
-                        </tr>
-                        <tr style="background: #f0f0f0; font-weight: 600;">
-                            <td class="metric-name">TOTAL</td>
-                            <td>40.863</td>
-                            <td>100%</td>
-                            <td>-</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Qualidade das Viagens Bloqueadas -->
-        <div class="charts-grid">
-            <div class="chart-card full-width">
-                <div class="chart-title">📈 Status das Viagens Bloqueadas (15.888 viagens via SAP)</div>
-                <canvas id="chartStatus"></canvas>
-            </div>
-        </div>
-
-        <!-- Recomendações -->
-        <div class="recommendations">
-            <h3>💡 Recomendações Estratégicas</h3>
-
-            <div class="recommendation-card">
-                <h4>✅ Implementar Bloqueio Gradual (4-6 semanas)</h4>
-                <p>
-                    <strong>Fase 1 (Dias 1-14):</strong> Comunicação aos motoristas sobre transição para T&T.
-                    Aceitar ainda SAP com aviso. Impacto: 0% de rejeições.
-                </p>
-            </div>
-
-            <div class="recommendation-card">
-                <h4>⚠️ Fase 2 (Dias 15-28): Endurecimento</h4>
-                <p>
-                    Bloquear SAP isolado. Aceitar SAP com Tracking. Monitorar adesão T&T.
-                    Impacto esperado: 15-20% de viagens.
-                </p>
-            </div>
-
-            <div class="recommendation-card">
-                <h4>🎯 Fase 3 (Dias 29+): Bloqueio Total</h4>
-                <p>
-                    Rejeitar qualquer entrada sem T&T. APENAS após >80% adesão.
-                    Impacto final: 38.88% de viagens (controlado e esperado).
-                </p>
-            </div>
-
-            <div class="recommendation-card">
-                <h4>🔄 Manter Whitelist de Exceções</h4>
-                <p>
-                    Permitir SAP em casos críticos: veículos sem smartphone, emergências, rotas de contingência.
-                    Reduz impacto final para ~15-25% de viagens.
-                </p>
-            </div>
-
-            <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 8px;">
-                <strong style="color: #0284c7;">🎓 Por que viagens é a métrica correta?</strong>
-                <p style="color: #333; margin-top: 8px; font-size: 13px;">
-                    Viagens SAP têm 1.74 linhas/viagem (mais processamento) vs T&T com 1.30 linhas/viagem.
-                    Logo: 38.88% de viagens é mais realista que 49% de linhas para representar impacto operacional.
-                </p>
-            </div>
-        </div>
-
-        <!-- Risk Summary -->
-        <div style="margin-top: 30px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h3 style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px;">📋 Resumo de Risco</h3>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                <div style="padding: 15px; background: #fee2e2; border-radius: 8px; border-left: 4px solid #ef4444;">
-                    <strong style="color: #991b1b;">Bloqueio Imediato</strong>
-                    <p style="color: #991b1b; font-size: 13px; margin-top: 8px;">
-                        Risco: <span class="risk-indicator"><span class="dot red"></span>CRÍTICO</span>
-                        <br>38.88% disrupção sem aviso prévio
+                <div class="recommendation-card">
+                    <h4>✅ Implementar Bloqueio Gradual (4-6 semanas)</h4>
+                    <p>
+                        <strong>Fase 1 (Dias 1-14):</strong> Comunicação aos motoristas sobre transição para T&T.
+                        Aceitar ainda SAP com aviso. Impacto: 0% de rejeições.
                     </p>
                 </div>
 
-                <div style="padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                    <strong style="color: #92400e;">Bloqueio Gradual ⭐</strong>
-                    <p style="color: #92400e; font-size: 13px; margin-top: 8px;">
-                        Risco: <span class="risk-indicator moderate"><span class="dot yellow"></span>MODERADO</span>
-                        <br>Controlado em 3 fases com transição
+                <div class="recommendation-card">
+                    <h4>⚠️ Fase 2 (Dias 15-28): Endurecimento</h4>
+                    <p>
+                        Bloquear SAP isolado. Aceitar SAP com Tracking. Monitorar adesão T&T.
+                        Impacto esperado: 15-20% de viagens.
                     </p>
                 </div>
 
-                <div style="padding: 15px; background: #dcfce7; border-radius: 8px; border-left: 4px solid #10b981;">
-                    <strong style="color: #166534;">Com Whitelist</strong>
-                    <p style="color: #166534; font-size: 13px; margin-top: 8px;">
-                        Risco: <span class="risk-indicator low"><span class="dot green"></span>BAIXO</span>
-                        <br>15-25% impacto com exceções
+                <div class="recommendation-card">
+                    <h4>🎯 Fase 3 (Dias 29+): Bloqueio Total</h4>
+                    <p>
+                        Rejeitar qualquer entrada sem T&T. APENAS após >80% adesão.
+                        Impacto final: 38.88% de viagens (controlado e esperado).
                     </p>
+                </div>
+
+                <div class="recommendation-card">
+                    <h4>🔄 Manter Whitelist de Exceções</h4>
+                    <p>
+                        Permitir SAP em casos críticos: veículos sem smartphone, emergências, rotas de contingência.
+                        Reduz impacto final para ~15-25% de viagens.
+                    </p>
+                </div>
+
+                <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 8px;">
+                    <strong style="color: #0284c7;">🎓 Por que viagens é a métrica correta?</strong>
+                    <p style="color: #333; margin-top: 8px; font-size: 13px;">
+                        Viagens SAP têm 1.74 linhas/viagem (mais processamento) vs T&T com 1.30 linhas/viagem.
+                        Logo: 38.88% de viagens é mais realista que 49% de linhas para representar impacto operacional.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Risk Summary -->
+            <div style="margin-top: 30px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px;">📋 Resumo de Risco</h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div style="padding: 15px; background: #fee2e2; border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <strong style="color: #991b1b;">Bloqueio Imediato</strong>
+                        <p style="color: #991b1b; font-size: 13px; margin-top: 8px;">
+                            Risco: <span class="risk-indicator"><span class="dot red"></span>CRÍTICO</span>
+                            <br>38.88% disrupção sem aviso prévio
+                        </p>
+                    </div>
+
+                    <div style="padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                        <strong style="color: #92400e;">Bloqueio Gradual ⭐</strong>
+                        <p style="color: #92400e; font-size: 13px; margin-top: 8px;">
+                            Risco: <span class="risk-indicator moderate"><span class="dot yellow"></span>MODERADO</span>
+                            <br>Controlado em 3 fases com transição
+                        </p>
+                    </div>
+
+                    <div style="padding: 15px; background: #dcfce7; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <strong style="color: #166534;">Com Whitelist</strong>
+                        <p style="color: #166534; font-size: 13px; margin-top: 8px;">
+                            Risco: <span class="risk-indicator low"><span class="dot green"></span>BAIXO</span>
+                            <br>15-25% impacto com exceções
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: ÁRVORE HIERÁRQUICA -->
+        <div id="tree" class="tab-content">
+            <div class="chart-card full-width">
+                <div class="chart-title">🌳 Árvore Hierárquica - Status × Fonte</div>
+
+                <div class="tree-controls">
+                    <button class="tree-btn" onclick="changeTreeLayout('down')">⬇️ Vertical</button>
+                    <button class="tree-btn" onclick="changeTreeLayout('right')">➡️ Horizontal</button>
+                </div>
+
+                <div id="treeChart"></div>
+
+                <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 8px;">
+                    <h4 style="color: #0284c7; margin-bottom: 10px;">💡 Como usar:</h4>
+                    <p style="color: #333; font-size: 13px; margin-bottom: 5px;">✓ Clique em um nó para expandir/colapsar</p>
+                    <p style="color: #333; font-size: 13px; margin-bottom: 5px;">✓ Hover para ver valores exatos</p>
+                    <p style="color: #333; font-size: 13px;">✓ Use os botões para mudar orientação</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: STATUS DETALHADO -->
+        <div id="status" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card success">
+                    <div class="kpi-label">Concluído</div>
+                    <div class="kpi-value">45.33%</div>
+                    <div class="kpi-subtext">18.528 viagens ✅</div>
+                </div>
+
+                <div class="kpi-card warning">
+                    <div class="kpi-label">Fechadas</div>
+                    <div class="kpi-value">34.96%</div>
+                    <div class="kpi-subtext">14.291 viagens</div>
+                </div>
+
+                <div class="kpi-card warning">
+                    <div class="kpi-label">Cancelado</div>
+                    <div class="kpi-value">10.93%</div>
+                    <div class="kpi-subtext">4.469 viagens ⚠️</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">Pendente</div>
+                    <div class="kpi-value">7.71%</div>
+                    <div class="kpi-subtext">3.152 viagens ⏳</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card full-width">
+                    <div class="chart-title">📊 Distribuição Completa de Status</div>
+                    <canvas id="chartStatusDetalhado"></canvas>
+                </div>
+
+                <div class="chart-card full-width">
+                    <div class="chart-title">📋 Análise Detalhada por Status</div>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Viagens</th>
+                                <th>%</th>
+                                <th>Descrição Completa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #f0fdf4;">
+                                <td class="metric-name">Status 1</td>
+                                <td><strong>18.528</strong></td>
+                                <td><strong>45.33%</strong></td>
+                                <td>Operações concluídas com sucesso - Pronto para T&T</td>
+                            </tr>
+                            <tr style="background: #fffbeb;">
+                                <td class="metric-name">Status 4</td>
+                                <td><strong>14.291</strong></td>
+                                <td><strong>34.96%</strong></td>
+                                <td>Associações fechadas - Ciclo finalizado</td>
+                            </tr>
+                            <tr style="background: #fef3c7;">
+                                <td class="metric-name">Status 3</td>
+                                <td><strong>4.469</strong></td>
+                                <td><strong>10.93%</strong></td>
+                                <td>Operações canceladas - Motivo a investigar</td>
+                            </tr>
+                            <tr style="background: #dbeafe;">
+                                <td class="metric-name">Status 2</td>
+                                <td><strong>3.152</strong></td>
+                                <td><strong>7.71%</strong></td>
+                                <td>Operações pendentes - Aguardando conclusão</td>
+                            </tr>
+                            <tr>
+                                <td class="metric-name">Sem Status</td>
+                                <td>423</td>
+                                <td>1.04%</td>
+                                <td>Sem classificação - Possível erro de sincronização</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -627,20 +811,166 @@
     </div>
 
     <script>
-        // Chart: Distribuição por Checkin Source
-        const ctxDistribuicao = document.getElementById('chartDistribuicao').getContext('2d');
-        new Chart(ctxDistribuicao, {
+        // === TAB SWITCHING ===
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Resize charts when tab changes
+            setTimeout(() => {
+                if (tabName === 'tree' && myTreeChart) {
+                    myTreeChart.resize();
+                }
+                if (tabName === 'overview') {
+                    myChart1.resize();
+                    myChart2.resize();
+                    myChart5.resize();
+                    myChart6.resize();
+                    myChart7.resize();
+                }
+            }, 100);
+        }
+
+        // === TREE CHART ===
+        let myTreeChart = null;
+        let currentTreeLayout = 'down';
+
+        function initTree() {
+            const treeContainer = document.getElementById('treeChart');
+            if (myTreeChart) myTreeChart.dispose();
+            myTreeChart = echarts.init(treeContainer);
+
+            const treeData = {
+                name: 'Total: 40.863 Viagens',
+                value: 40863,
+                children: [
+                    {
+                        name: 'Concluído (18.528)',
+                        value: 18528,
+                        children: [
+                            { name: 'Motora (14.075)', value: 14075 },
+                            { name: 'SAP (1.457)', value: 1457 },
+                            { name: 'Workstation (1.659)', value: 1659 },
+                            { name: 'Tracking (1.153)', value: 1153 },
+                            { name: 'GUIA (184)', value: 184 }
+                        ]
+                    },
+                    {
+                        name: 'Fechadas (14.291)',
+                        value: 14291,
+                        children: [
+                            { name: 'Motora (1.073)', value: 1073 },
+                            { name: 'SAP (263)', value: 263 },
+                            { name: 'Workstation (115)', value: 115 },
+                            { name: 'Tracking (10.840)', value: 10840 }
+                        ]
+                    },
+                    {
+                        name: 'Cancelado (4.469)',
+                        value: 4469,
+                        children: [
+                            { name: 'Motora (3.262)', value: 3262 },
+                            { name: 'SAP (291)', value: 291 },
+                            { name: 'Workstation (84)', value: 84 },
+                            { name: 'Tracking (832)', value: 832 }
+                        ]
+                    },
+                    {
+                        name: 'Pendente (3.152)',
+                        value: 3152,
+                        children: [
+                            { name: 'Motora (1.264)', value: 1264 },
+                            { name: 'SAP (51)', value: 51 },
+                            { name: 'Workstation (99)', value: 99 },
+                            { name: 'Tracking (1.738)', value: 1738 }
+                        ]
+                    }
+                ]
+            };
+
+            function getNodeColor(name) {
+                if (name.includes('Concluído')) return '#10b981';
+                if (name.includes('Fechadas')) return '#f59e0b';
+                if (name.includes('Cancelado')) return '#f97316';
+                if (name.includes('Pendente')) return '#3b82f6';
+                if (name.includes('Motora')) return '#10b981';
+                if (name.includes('SAP')) return '#ef4444';
+                if (name.includes('Workstation')) return '#3b82f6';
+                if (name.includes('Tracking')) return '#f59e0b';
+                return '#94a3b8';
+            }
+
+            function colorize(node) {
+                node.itemStyle = { color: getNodeColor(node.name) };
+                if (node.children) node.children.forEach(colorize);
+            }
+            colorize(treeData);
+
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    triggerOn: 'mousemove',
+                    formatter: function(params) {
+                        return `<strong>${params.data.name}</strong><br/>Viagens: <strong>${params.data.value.toLocaleString('pt-BR')}</strong>`;
+                    }
+                },
+                series: [{
+                    type: 'tree',
+                    data: [treeData],
+                    top: '5%',
+                    left: '5%',
+                    right: '5%',
+                    bottom: '5%',
+                    symbol: 'circle',
+                    symbolSize: [40, 40],
+                    orient: currentTreeLayout,
+                    expandAndCollapse: true,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750,
+                    label: {
+                        position: currentTreeLayout === 'down' ? 'bottom' : 'right',
+                        verticalAlign: currentTreeLayout === 'down' ? 'top' : 'middle',
+                        align: currentTreeLayout === 'down' ? 'center' : 'left',
+                        fontSize: 11,
+                        fontWeight: 'bold',
+                        color: '#333'
+                    },
+                    itemStyle: { borderColor: '#fff', borderWidth: 2 },
+                    lineStyle: { color: '#d4d4d8', width: 2 }
+                }]
+            };
+
+            myTreeChart.setOption(option);
+        }
+
+        function changeTreeLayout(layout) {
+            currentTreeLayout = layout;
+            initTree();
+        }
+
+        // === CHART.JS CHARTS ===
+        let myChart1, myChart2, myChart5, myChart6, myChart7;
+
+        // Chart 1: Distribuição por Checkin Source
+        const ctx1 = document.getElementById('chartDistribuicao').getContext('2d');
+        myChart1 = new Chart(ctx1, {
             type: 'doughnut',
             data: {
                 labels: ['Motora\n(21.736)', 'SAP\n(15.888)', 'Workstation\n(1.617)', 'GUIA\n(1.622)'],
                 datasets: [{
                     data: [53.19, 38.88, 3.96, 3.97],
-                    backgroundColor: [
-                        '#10b981',
-                        '#ef4444',
-                        '#3b82f6',
-                        '#f59e0b'
-                    ],
+                    backgroundColor: ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'],
                     borderColor: 'white',
                     borderWidth: 3
                 }]
@@ -649,30 +979,15 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            font: {
-                                size: 13,
-                                weight: '500'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': ' + context.parsed + '%';
-                            }
-                        }
-                    }
+                    legend: { position: 'bottom', labels: { padding: 20, font: { size: 13, weight: '500' } } },
+                    tooltip: { callbacks: { label: function(context) { return context.label + ': ' + context.parsed + '%'; } } }
                 }
             }
         });
 
-        // Chart: Impacto de Bloqueio
-        const ctxImpacto = document.getElementById('chartImpacto').getContext('2d');
-        new Chart(ctxImpacto, {
+        // Chart 2: Impacto de Bloqueio
+        const ctx2 = document.getElementById('chartImpacto').getContext('2d');
+        myChart2 = new Chart(ctx2, {
             type: 'bar',
             data: {
                 labels: ['Continuariam\n(T&T)', 'Bloqueadas\n(SAP)'],
@@ -689,53 +1004,28 @@
                 maintainAspectRatio: true,
                 indexAxis: 'y',
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.x + '% (' +
-                                    (context.parsed.x === 61.12 ? '24.975 viagens' : '15.888 viagens') + ')';
+                                return context.parsed.x + '% (' + (context.parsed.x === 61.12 ? '24.975 viagens' : '15.888 viagens') + ')';
                             }
                         }
                     }
                 },
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    }
-                }
+                scales: { x: { min: 0, max: 100, ticks: { callback: function(value) { return value + '%'; } } } }
             }
         });
 
-        // Chart: Status Geral (Todas as Viagens)
-        const ctxStatusGeral = document.getElementById('chartStatusGeral').getContext('2d');
-        new Chart(ctxStatusGeral, {
+        // Chart 5: Status Geral
+        const ctx5 = document.getElementById('chartStatusGeral').getContext('2d');
+        myChart5 = new Chart(ctx5, {
             type: 'doughnut',
             data: {
-                labels: [
-                    'Status 1: Concluído\n(18.528)',
-                    'Status 4: Fechadas\n(14.291)',
-                    'Status 3: Cancelado\n(4.469)',
-                    'Status 2: Pendente\n(3.152)',
-                    'Sem Status\n(423)'
-                ],
+                labels: ['Concluído\n(18.528)', 'Fechadas\n(14.291)', 'Cancelado\n(4.469)', 'Pendente\n(3.152)', 'Sem Status\n(423)'],
                 datasets: [{
                     data: [45.33, 34.96, 10.93, 7.71, 1.04],
-                    backgroundColor: [
-                        '#10b981',
-                        '#ef4444',
-                        '#f59e0b',
-                        '#3b82f6',
-                        '#94a3b8'
-                    ],
+                    backgroundColor: ['#10b981', '#f59e0b', '#f97316', '#3b82f6', '#94a3b8'],
                     borderColor: 'white',
                     borderWidth: 3
                 }]
@@ -744,30 +1034,15 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            font: {
-                                size: 12,
-                                weight: '500'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.label.split('\n')[0] + ': ' + context.parsed + '%';
-                            }
-                        }
-                    }
+                    legend: { position: 'bottom', labels: { padding: 20, font: { size: 12, weight: '500' } } },
+                    tooltip: { callbacks: { label: function(context) { return context.label.split('\n')[0] + ': ' + context.parsed + '%'; } } }
                 }
             }
         });
 
-        // Chart: Status das Viagens Bloqueadas
-        const ctxStatus = document.getElementById('chartStatus').getContext('2d');
-        new Chart(ctxStatus, {
+        // Chart 6: Status das Bloqueadas
+        const ctx6 = document.getElementById('chartStatus').getContext('2d');
+        myChart6 = new Chart(ctx6, {
             type: 'bar',
             data: {
                 labels: ['Com SUCESSO', 'Com ERRO', 'OUTRAS'],
@@ -783,29 +1058,59 @@
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 const percentages = [49.84, 39.63, 10.52];
-                                return context.parsed.y.toLocaleString('pt-BR') + ' viagens (' +
-                                    percentages[context.dataIndex] + '%)';
+                                return context.parsed.y.toLocaleString('pt-BR') + ' viagens (' + percentages[context.dataIndex] + '%)';
                             }
                         }
                     }
                 },
-                scales: {
-                    y: {
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('pt-BR');
+                scales: { y: { ticks: { callback: function(value) { return value.toLocaleString('pt-BR'); } } } }
+            }
+        });
+
+        // Chart 7: Status Detalhado (para aba 3)
+        const ctx7 = document.getElementById('chartStatusDetalhado').getContext('2d');
+        myChart7 = new Chart(ctx7, {
+            type: 'bar',
+            data: {
+                labels: ['Concluído', 'Fechadas', 'Cancelado', 'Pendente'],
+                datasets: [{
+                    label: 'Quantidade de Viagens',
+                    data: [18528, 14291, 4469, 3152],
+                    backgroundColor: ['#10b981', '#f59e0b', '#f97316', '#3b82f6'],
+                    borderColor: ['#059669', '#d97706', '#ea580c', '#2563eb'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toLocaleString('pt-BR') + ' viagens';
                             }
                         }
                     }
-                }
+                },
+                scales: { y: { ticks: { callback: function(value) { return value.toLocaleString('pt-BR'); } } } }
             }
+        });
+
+        // Initialize tree on page load
+        window.addEventListener('load', function() {
+            initTree();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (myTreeChart) myTreeChart.resize();
         });
     </script>
 </body>
