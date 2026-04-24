@@ -129,6 +129,10 @@
             margin-bottom: 30px;
         }
 
+        .chart-card canvas {
+            max-height: 250px;
+        }
+
         .chart-card {
             background: white;
             padding: 25px;
@@ -159,7 +163,13 @@
 
         #treeChart {
             width: 100%;
-            height: 900px;
+            height: 700px;
+            min-height: 600px;
+        }
+
+        .tree-container {
+            display: flex;
+            flex-direction: column;
         }
 
         .tree-controls {
@@ -421,6 +431,12 @@
         <header>
             <h1>📊 Dashboard - Análise de Impacto T&T</h1>
             <p class="subtitle">DocumentType = 6 | Contagem por Viagens (DocumentNumber Distinto) | Base: 40.863 viagens</p>
+            <div style="margin-top: 15px; padding: 12px; background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 6px;">
+                <strong style="color: #0284c7;">💡 O que você verá aqui:</strong>
+                <p style="color: #333; font-size: 13px; margin-top: 5px;">
+                    Análise baseada em <strong>Status 1 (conclusão com sucesso)</strong>. Mostra quantas viagens completaram sem intercorrências (Status 1) por cada fonte (T&T vs SAP). Considera apenas a <strong>última associação</strong> de cada viagem.
+                </p>
+            </div>
 
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('overview')">📊 Visão Geral</button>
@@ -440,21 +456,30 @@
                 </div>
 
                 <div class="kpi-card success">
-                    <div class="kpi-label">Via T&T (Normal)</div>
-                    <div class="kpi-value">67.93%</div>
-                    <div class="kpi-subtext">27.782 viagens operando bem ✅</div>
+                    <div class="kpi-label">Status 1 (Sem Intercorrências)</div>
+                    <div class="kpi-value">60.86%</div>
+                    <div class="kpi-subtext">24.871 viagens completadas com sucesso ✅</div>
+                    <div class="kpi-subtext" style="color: #0284c7; font-size: 12px; margin-top: 8px; border-top: 1px solid #e0e0e0; padding-top: 8px;">
+                        Conclusão ideal sem problemas
+                    </div>
                 </div>
 
                 <div class="kpi-card warning">
-                    <div class="kpi-label">Fora de T&T</div>
-                    <div class="kpi-value">32.07%</div>
-                    <div class="kpi-subtext">13.081 viagens (SAP + Sem Info)</div>
+                    <div class="kpi-label">Viagens com SAP</div>
+                    <div class="kpi-value">39.18%</div>
+                    <div class="kpi-subtext">16.014 viagens (com SAP em algum ponto)</div>
+                    <div class="kpi-subtext" style="color: #0284c7; font-size: 12px; margin-top: 8px; border-top: 1px solid #e0e0e0; padding-top: 8px;">
+                        Dessas: 8.289 chegaram a Status 1 | 7.725 não
+                    </div>
                 </div>
 
-                <div class="kpi-card success">
-                    <div class="kpi-label">Impacto de Bloqueio (SAP)</div>
-                    <div class="kpi-value">3.97%</div>
-                    <div class="kpi-subtext">1.624 viagens bloqueadas ✅</div>
+                <div class="kpi-card danger">
+                    <div class="kpi-label">Impacto Real de Bloqueio</div>
+                    <div class="kpi-value">18.90%</div>
+                    <div class="kpi-subtext">7.725 viagens SAP sem Status 1 ⚠️</div>
+                    <div class="kpi-subtext" style="color: #0284c7; font-size: 12px; margin-top: 8px; border-top: 1px solid #e0e0e0; padding-top: 8px;">
+                        SAP que nunca completariam com sucesso
+                    </div>
                 </div>
             </div>
 
@@ -462,68 +487,80 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">📍 Distribuição por Checkin Source</div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 10px;">De onde vieram as associações finais das viagens</p>
                     <canvas id="chartDistribuicao"></canvas>
                 </div>
 
                 <div class="chart-card">
-                    <div class="chart-title">🎯 Impacto de Bloqueio</div>
+                    <div class="chart-title">🎯 Impacto de Bloqueio (SAP sem Status 1)</div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 10px;">Se bloquearmos SAP problemático: 18.90% das viagens seriam rejeitadas</p>
                     <canvas id="chartImpacto"></canvas>
                 </div>
 
             </div>
 
-            <!-- Análise de Impacto -->
-            <div class="impact-section">
-                <div class="impact-title">⚡ Análise de Impacto: Bloqueio das Associações Feitas Fora do T&T</div>
+            <!-- Análise de Placas -->
+            <div class="charts-grid">
+                <div class="chart-card full-width">
+                    <div class="chart-title">🚗 Análise de Placas e Substituições</div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 15px;">Análise de mudanças de placas durante o ciclo de vida das viagens</p>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Associação</th>
+                                <th>Viagens</th>
+                                <th>%</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #f0fdf4;">
+                                <td class="metric-name">✅ Uma Única Placa</td>
+                                <td><strong>35.009</strong></td>
+                                <td><strong>85.67%</strong></td>
+                                <td>Viagem com a mesma placa do início ao fim</td>
+                            </tr>
+                            <tr style="background: #fffbeb;">
+                                <td class="metric-name">🔄 Troca de Placa</td>
+                                <td><strong>5.854</strong></td>
+                                <td><strong>14.33%</strong></td>
+                                <td>Veículo substituído (mudança de placa durante viagem)</td>
+                            </tr>
+                            <tr style="background: #f3f4f6;">
+                                <td class="metric-name">📊 TOTAL</td>
+                                <td><strong>40.863</strong></td>
+                                <td><strong>100%</strong></td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                <div class="impact-item">
-                    <div style="font-weight: 600; color: #ef4444; width: 120px;">Bloqueio Total</div>
-                    <div class="impact-bar">
-                        <div class="impact-label">3.97% de viagens bloqueadas (SAP + Sem Info)</div>
-                        <div class="impact-graph">
-                            <div class="impact-fill" style="width: 3.97%;">3.97%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="impact-item success">
-                    <div style="font-weight: 600; color: #10b981; width: 120px;">Fase 1 (0-14d)</div>
-                    <div class="impact-bar">
-                        <div class="impact-label">Comunicação apenas - 0% impacto</div>
-                        <div class="impact-graph">
-                            <div class="impact-fill" style="width: 0%; background: #10b981;">0%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="impact-item warning">
-                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 2 (15-28d)</div>
-                    <div class="impact-bar">
-                        <div class="impact-label">Endurecimento gradual - 2% impacto</div>
-                        <div class="impact-graph">
-                            <div class="impact-fill" style="width: 2%; background: #f59e0b;">2%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="impact-item success">
-                    <div style="font-weight: 600; color: #10b981; width: 120px;">Fase 3 (29+d)</div>
-                    <div class="impact-bar">
-                        <div class="impact-label">Bloqueio total (após >90% adesão) - 3.97% impacto</div>
-                        <div class="impact-graph">
-                            <div class="impact-fill" style="width: 3.97%; background: #10b981;">3.97%</div>
-                        </div>
+                    <div style="margin-top: 20px; padding: 12px; background: #dbeafe; border-left: 4px solid #0284c7; border-radius: 6px;">
+                        <strong style="color: #0284c7;">💡 Insight:</strong>
+                        <p style="color: #333; font-size: 12px; margin-top: 5px;">
+                            85.67% das viagens mantêm a mesma placa, indicando boa estabilidade operacional. Apenas 14.33% trocam de placa (falha de veículo, mudança de rota).
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Status de Todas as Viagens -->
+            <!-- Status de Todas as Viagens - 2 Colunas -->
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">📊 Distribuição por Status (Todas as Viagens)</div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 10px;">Como as viagens terminaram (status final da última associação)</p>
                     <canvas id="chartStatusGeral"></canvas>
                 </div>
 
+                <div class="chart-card">
+                    <div class="chart-title">📈 Status das Viagens Bloqueadas (15.888 viagens via SAP)</div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 10px;">Resultado se bloqueássemos SAP problemático</p>
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabela de Detalhes - Full Width -->
+            <div class="charts-grid">
                 <div class="chart-card full-width">
                     <div class="chart-title">📋 Detalhes por Status</div>
                     <table class="comparison-table">
@@ -577,16 +614,20 @@
                 </div>
             </div>
 
-            <!-- Qualidade das Viagens Bloqueadas -->
-            <div class="charts-grid">
-                <div class="chart-card full-width">
-                    <div class="chart-title">📈 Status das Viagens Bloqueadas (15.888 viagens via SAP)</div>
-                    <canvas id="chartStatus"></canvas>
-                </div>
+            <!-- Explicação Geral -->
+            <div style="margin-top: 30px; padding: 20px; background: #dbeafe; border-radius: 10px; border-left: 4px solid #0284c7;">
+                <h3 style="color: #0284c7; margin-bottom: 10px;">🎯 O que isso significa?</h3>
+                <p style="color: #333; font-size: 13px; line-height: 1.6;">
+                    <strong>Insights importantes:</strong>
+                    <br>✅ <strong>60.86%</strong> das viagens completam com sucesso (Status 1)
+                    <br>⚠️ <strong>39.18%</strong> das viagens usam SAP em algum ponto (16.014)
+                    <br>👉 <strong>Dessas 16.014 SAP:</strong> 8.289 chegam a Status 1 (funcionam!) | 7.725 não chegam (problema)
+                    <br>🎯 <strong>Impacto real de bloqueio:</strong> Apenas 18.90% (7.725 viagens que não completam com SAP)
+                </p>
             </div>
 
             <!-- Recomendações -->
-            <div class="recommendations">
+            <div class="recommendations" style="margin-top: 30px;">
                 <h3>💡 Recomendações Estratégicas</h3>
 
                 <div class="recommendation-card">
@@ -627,6 +668,57 @@
                         Viagens SAP têm 1.74 linhas/viagem (mais processamento) vs T&T com 1.30 linhas/viagem.
                         Logo: 38.88% de viagens é mais realista que 49% de linhas para representar impacto operacional.
                     </p>
+                </div>
+            </div>
+
+            <!-- Análise de Impacto - Moved to appear after recommendations -->
+            <div class="impact-section" style="margin-top: 30px;">
+                <div class="impact-title">⚡ Análise de Impacto: Bloqueio das Viagens SAP Problemáticas</div>
+                <div style="margin-bottom: 20px; padding: 12px; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px;">
+                    <strong style="color: #92400e;">📌 Realidade do Impacto:</strong>
+                    <p style="color: #333; font-size: 12px; margin-top: 5px;">
+                        Bloqueio apenas do SAP que não consegue completar (Status 1). As 8.289 viagens SAP que já chegaram a Status 1 provam que funcionam quando não há intercorrências.
+                    </p>
+                </div>
+
+                <div class="impact-item warning">
+                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Bloqueio Total</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">18.90% de viagens bloqueadas (SAP sem Status 1)</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 18.90%;">18.90%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="impact-item success">
+                    <div style="font-weight: 600; color: #10b981; width: 120px;">Fase 1 (0-14d)</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">Comunicação apenas - 0% impacto</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 0%; background: #10b981;">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="impact-item warning">
+                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 2 (15-28d)</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">Endurecimento gradual - 9-10% impacto</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 9.5%; background: #f59e0b;">9.5%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="impact-item warning">
+                    <div style="font-weight: 600; color: #f59e0b; width: 120px;">Fase 3 (29+d)</div>
+                    <div class="impact-bar">
+                        <div class="impact-label">Bloqueio total (após >80% adesão) - 18.90% impacto</div>
+                        <div class="impact-graph">
+                            <div class="impact-fill" style="width: 18.90%; background: #f59e0b;">18.90%</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1005,10 +1097,10 @@
         myChart2 = new Chart(ctx2, {
             type: 'bar',
             data: {
-                labels: ['Continuariam\n(T&T)', 'Bloqueadas\n(SAP)'],
+                labels: ['Continuariam\n(Status 1)', 'Bloqueadas\n(SAP sem Status 1)'],
                 datasets: [{
                     label: 'Viagens',
-                    data: [61.12, 38.88],
+                    data: [81.10, 18.90],
                     backgroundColor: ['#10b981', '#ef4444'],
                     borderColor: ['#059669', '#dc2626'],
                     borderWidth: 2
@@ -1023,7 +1115,7 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.x + '% (' + (context.parsed.x === 61.12 ? '24.975 viagens' : '15.888 viagens') + ')';
+                                return context.parsed.x + '% (' + (context.parsed.x === 81.10 ? '33.138 viagens' : '7.725 viagens') + ')';
                             }
                         }
                     }
