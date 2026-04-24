@@ -707,8 +707,8 @@
                 <div class="chart-title">🌳 Árvore Hierárquica - Status × Fonte</div>
 
                 <div class="tree-controls">
-                    <button class="tree-btn" onclick="changeTreeLayout('down')">⬇️ Vertical</button>
-                    <button class="tree-btn" onclick="changeTreeLayout('right')">➡️ Horizontal</button>
+                    <button class="tree-btn" onclick="changeTreeLayout('vertical')">⬇️ Vertical</button>
+                    <button class="tree-btn" onclick="changeTreeLayout('horizontal')">➡️ Horizontal</button>
                 </div>
 
                 <div id="treeChart"></div>
@@ -844,7 +844,7 @@
 
         // === TREE CHART ===
         let myTreeChart = null;
-        let currentTreeLayout = 'down';
+        let currentTreeLayout = 'vertical';
 
         function initTree() {
             if (typeof echarts === 'undefined') {
@@ -935,7 +935,10 @@
                     trigger: 'item',
                     triggerOn: 'mousemove',
                     formatter: function(params) {
-                        return `<strong>${params.data.name}</strong><br/>Viagens: <strong>${params.data.value.toLocaleString('pt-BR')}</strong>`;
+                        if (params.data && params.data.value) {
+                            return `<strong>${params.data.name}</strong><br/>Viagens: <strong>${params.data.value.toLocaleString('pt-BR')}</strong>`;
+                        }
+                        return params.name;
                     }
                 },
                 series: [{
@@ -946,21 +949,25 @@
                     right: '5%',
                     bottom: '5%',
                     symbol: 'circle',
-                    symbolSize: [40, 40],
+                    symbolSize: [35, 35],
                     orient: currentTreeLayout,
                     expandAndCollapse: true,
                     animationDuration: 550,
                     animationDurationUpdate: 750,
                     label: {
-                        position: currentTreeLayout === 'down' ? 'bottom' : 'right',
-                        verticalAlign: currentTreeLayout === 'down' ? 'top' : 'middle',
-                        align: currentTreeLayout === 'down' ? 'center' : 'left',
+                        position: currentTreeLayout === 'vertical' ? 'bottom' : 'right',
+                        verticalAlign: currentTreeLayout === 'vertical' ? 'top' : 'middle',
+                        align: currentTreeLayout === 'vertical' ? 'center' : 'left',
                         fontSize: 11,
                         fontWeight: 'bold',
                         color: '#333'
                     },
-                    itemStyle: { borderColor: '#fff', borderWidth: 2 },
-                    lineStyle: { color: '#d4d4d8', width: 2 }
+                    itemStyle: {
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        color: '#667eea'
+                    },
+                    lineStyle: { color: '#cbd5e1', width: 2 }
                 }]
             };
 
@@ -968,6 +975,7 @@
         }
 
         function changeTreeLayout(layout) {
+            console.log('Mudando layout para:', layout);
             currentTreeLayout = layout;
             initTree();
         }
