@@ -983,29 +983,36 @@
         }
 
         function expandAllNodes() {
+            console.log('Expandindo todos os nós...');
             if (!myTreeChart) return;
-            // Expandir todos os nós
+
+            // Clonar os dados e expandir todos
             const option = myTreeChart.getOption();
-            if (option && option.series && option.series[0]) {
-                option.series[0].data[0].expanded = true;
-                setAllExpanded(option.series[0].data[0], true);
-                myTreeChart.setOption(option);
+            if (option && option.series && option.series[0] && option.series[0].data) {
+                const data = JSON.parse(JSON.stringify(option.series[0].data[0]));
+                setAllExpanded(data, true);
+                option.series[0].data = [data];
+                myTreeChart.setOption(option, true);
             }
         }
 
         function collapseAllNodes() {
+            console.log('Recolhendo todos os nós...');
             if (!myTreeChart) return;
-            // Recolher todos os nós
+
+            // Clonar os dados e recolher todos
             const option = myTreeChart.getOption();
-            if (option && option.series && option.series[0]) {
-                setAllExpanded(option.series[0].data[0], false);
-                myTreeChart.setOption(option);
+            if (option && option.series && option.series[0] && option.series[0].data) {
+                const data = JSON.parse(JSON.stringify(option.series[0].data[0]));
+                setAllExpanded(data, false);
+                option.series[0].data = [data];
+                myTreeChart.setOption(option, true);
             }
         }
 
         function setAllExpanded(node, expanded) {
             node.expanded = expanded;
-            if (node.children) {
+            if (node.children && node.children.length > 0) {
                 node.children.forEach(child => setAllExpanded(child, expanded));
             }
         }
